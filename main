@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>姓名验证系统</title>
+    <style>
+        .result-success { color: green; }
+        .result-error { color: red; }
+    </style>
+</head>
+<body>
+    <h2>113學年編制內員工報名表</h2>
+    
+    <form onsubmit="validateName(event); return false;">
+        <label>請輸入姓名：</label>
+        <input type="text" id="nameInput" required>
+        <button type="submit">檢查資格</button>
+    </form>
+    
+    <div id="result"></div>
+
+    <script>
+        // 调试模式：打印详细日志
+        const DEBUG = true;
+
+        function validateName(event) {
+            if (DEBUG) console.log('[验证] 函数被调用');
+            
+            if (!event) {
+                if (DEBUG) console.error('[验证] 未传入事件对象');
+                return;
+            }
+            
+            event.preventDefault();
+            
+            const inputName = document.getElementById('nameInput').value.trim();
+            if (DEBUG) console.log('[验证] 输入的姓名:', inputName);
+            
+            if (!inputName) {
+                showResult('请输入姓名', false);
+                return;
+            }
+            
+            const dataElement = document.getElementById('googleSheetsData');
+            if (!dataElement) {
+                if (DEBUG) console.error('[验证] 未找到数据元素');
+                showResult('系统错误：未找到数据', false);
+                return;
+            }
+            
+            const names = dataElement.value.split(/[,，]/).map(name => name.trim());
+            if (DEBUG) console.log('[验证] 解析的姓名列表:', names);
+            
+            if (names.includes(inputName)) {
+                showResult(`驗證通過！歡迎 ${inputName} 報名`, true);
+            } else {
+                showResult("驗證失敗：姓名不在113學年編制內員工名單中", false);
+            }
+        }
+
+        function showResult(text, isSuccess) {
+            const resultDiv = document.getElementById('result');
+            if (!resultDiv) {
+                if (DEBUG) console.error('[显示结果] 未找到结果元素');
+                return;
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="${isSuccess ? 'result-success' : 'result-error'}">
+                    ${isSuccess ? '✅ ' : '❌ '} ${text}
+                </div>
+            `;
+            
+            if (DEBUG) console.log(`[显示结果] ${isSuccess ? '成功' : '失败'} - ${text}`);
+        }
+    </script>
+    
+    <!-- 务必确保此处包含正确的姓名列表 -->
+    <input type="hidden" id="googleSheetsData" 
+           value="陳怡君,李威廷,王美華,張志強,林志偉,黃麗珠,鄭淑貞,蔡明哲,楊佳穎,劉建宏" />
+</body>
+</html>
